@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using SportingClub.Application;
+using SportingClub.Infrastructure.Services;
 
 namespace SportingClub.Infrastructure;
 
@@ -32,6 +33,16 @@ public static class DependencyInjection
         services.AddSingleton<IAnalyticsService, InMemoryAnalyticsService>();
         services.AddScoped<IAuthService, EfCoreAuthService>();
         services.AddScoped<IResourceService, EfCoreResourceService>();
+
+        // Phase 2 Services
+        services.AddScoped<ISportService, EfCoreSportService>();
+        services.AddScoped<IServiceService, EfCoreServiceService>();
+        services.AddScoped<ISubscriptionService, EfCoreSubscriptionService>();
+        services.AddScoped<ITicketService, EfCoreTicketService>();
+        services.AddScoped<IReservationService, EfCoreReservationService>();
+        services.AddScoped<IStoreService, EfCoreStoreService>();
+        services.AddScoped<IOfferService, EfCoreOfferService>();
+
         services.AddHostedService<RenewalReminderBackgroundService>();
         return services;
     }
