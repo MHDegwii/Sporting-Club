@@ -1,0 +1,84 @@
+{
+  "info": {
+    "name": "Sporting Club API",
+    "_postman_id": "c58f1f51-e703-4de1-9b86-fde8c79ea111",
+    "description": "Collection for testing Sporting Club backend APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@sportingclub.local\",\n  \"fullName\": \"Admin User\",\n  \"password\": \"Pass@123\",\n  \"role\": \"Admin\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@sportingclub.local\",\n  \"password\": \"Pass@123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Members - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/v1/members",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"John Doe\",\n  \"attributes\": {\n    \"memberCode\": \"M-1001\",\n    \"phone\": \"+201234567890\"\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "Members - List",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/v1/members?page=1&pageSize=10&search=john&sortBy=name&sortDirection=asc"
+      }
+    },
+    {
+      "name": "Analytics - Dashboard Summary",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/v1/analytics/dashboard-summary"
+      }
+    },
+    {
+      "name": "Health - Ready",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/operations/ready"
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" }
+  ]
+}

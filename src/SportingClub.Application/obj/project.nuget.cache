@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "HteCjE3kIH7UBUNkLxruEYZ3gXMrlUSzDzAxxpxasQoemAGWMAyHMUB7SSs9hnLoyVGtjw2uLx8ndv4wiP161Q==",
+  "success": true,
+  "projectFilePath": "D:\\Work\\AI-Projects\\Sporting-Club\\src\\SportingClub.Application\\SportingClub.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\pc\\.nuget\\packages\\mediatr\\11.0.0\\mediatr.11.0.0.nupkg.sha512",
+    "C:\\Users\\pc\\.nuget\\packages\\mediatr.contracts\\1.0.1\\mediatr.contracts.1.0.1.nupkg.sha512",
+    "C:\\Users\\pc\\.nuget\\packages\\mediatr.extensions.microsoft.dependencyinjection\\11.1.0\\mediatr.extensions.microsoft.dependencyinjection.11.1.0.nupkg.sha512",
+    "C:\\Users\\pc\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\7.0.0\\microsoft.extensions.dependencyinjection.abstractions.7.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

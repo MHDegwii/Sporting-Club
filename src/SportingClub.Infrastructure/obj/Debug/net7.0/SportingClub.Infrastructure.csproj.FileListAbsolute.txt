@@ -1,0 +1,17 @@
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\bin\Debug\net7.0\SportingClub.Infrastructure.deps.json
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\bin\Debug\net7.0\SportingClub.Infrastructure.dll
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\bin\Debug\net7.0\SportingClub.Infrastructure.pdb
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\bin\Debug\net7.0\SportingClub.Application.dll
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\bin\Debug\net7.0\SportingClub.Domain.dll
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\bin\Debug\net7.0\SportingClub.Application.pdb
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\bin\Debug\net7.0\SportingClub.Domain.pdb
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\SportingClub.Infrastructure.csproj.AssemblyReference.cache
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\SportingClub.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\SportingClub.Infrastructure.AssemblyInfoInputs.cache
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\SportingClub.Infrastructure.AssemblyInfo.cs
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\SportingClub.Infrastructure.csproj.CoreCompileInputs.cache
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\SportingClub.Infrastructure.csproj.CopyComplete
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\SportingClub.Infrastructure.dll
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\refint\SportingClub.Infrastructure.dll
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\SportingClub.Infrastructure.pdb
+D:\Work\AI-Projects\Sporting-Club\src\SportingClub.Infrastructure\obj\Debug\net7.0\ref\SportingClub.Infrastructure.dll
