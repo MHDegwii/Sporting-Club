@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: sporting-club-api
+    runtime: dotnet
+    repo: https://github.com/MHDegwii/Sporting-Club
+    branch: dev
+    plan: free
+    rootDir: .
+    buildCommand: dotnet restore SportingClub.sln && dotnet publish src/SportingClub.API/SportingClub.API.csproj -c Release -o out
+    startCommand: dotnet out/SportingClub.API.dll
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sporting-club-db
+          property: connectionString
+      - key: Jwt__Key
+        generateValue: true
+      - key: Jwt__Issuer
+        value: SportingClub
+      - key: Jwt__Audience
+        value: SportingClubClients
+      - key: Jwt__AccessTokenExpiryMinutes
+        value: "60"
+
+databases:
+  - name: sporting-club-db
+    plan: free
