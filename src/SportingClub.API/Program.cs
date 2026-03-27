@@ -17,7 +17,12 @@ if (!string.IsNullOrWhiteSpace(port))
 }
 
 builder.Services.AddControllers();
-builder.Services.AddApiVersioning();
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks();
 builder.Services.AddRateLimiter(options =>
@@ -63,6 +68,10 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sporting Club API", Version = "v1" });
+
+    // Support for API versioning in Swagger
+    c.OperationFilter<SwaggerDefaultValues>();
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",

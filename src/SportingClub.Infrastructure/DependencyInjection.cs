@@ -10,11 +10,20 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = GetConnectionString(configuration);
+        var useLocalDb = configuration.GetValue<bool>("UseLocalDb", false);
 
         services.AddDbContext<SportingClubDbContext>(options =>
         {
-            options.UseNpgsql(connectionString);
+            if (useLocalDb)
+            {
+                var dbPath = Path.Combine(AppContext.BaseDirectory, "sportingclub.db");
+                options.UseSqlite($"Data Source={dbPath}");
+            }
+            else
+            {
+                var connectionString = GetConnectionString(configuration);
+                options.UseNpgsql(connectionString);
+            }
         });
 
         services.AddSingleton<IEmailService, ConsoleEmailService>();

@@ -47,7 +47,7 @@ public sealed class SportingClubDbContext : DbContext
             b.Property(x => x.ResourceType).IsRequired();
             b.Property(x => x.Name).IsRequired();
 
-            // Store Attributes as JSON text/jsonb so the API can keep its flexible metadata model.
+            // Store Attributes as JSON so the API can keep its flexible metadata model.
             var dictToJson = new ValueConverter<Dictionary<string, string>, string>(
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null) ??
@@ -55,7 +55,7 @@ public sealed class SportingClubDbContext : DbContext
 
             b.Property(x => x.Attributes)
                 .HasConversion(dictToJson)
-                .HasColumnType("jsonb");
+                .HasColumnType("text");
 
             b.Property(x => x.CreatedAtUtc).IsRequired();
             b.Property(x => x.UpdatedAtUtc).IsRequired();
