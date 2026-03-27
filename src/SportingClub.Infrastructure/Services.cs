@@ -2,8 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SportingClub.Application;
 using SportingClub.Domain;
@@ -237,6 +239,276 @@ public sealed class InMemoryResourceService : IResourceService
 
         var removed = items.RemoveAll(i => i.Id == id) > 0;
         return Task.FromResult(removed);
+    }
+
+    private static string NormalizeResource(string resourceType)
+    {
+        var supported = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "employees", "departments", "members", "sports", "services", "subscriptions",
+            "tickets", "reservations", "branches", "stores", "offers", "announcements", "faqs"
+        };
+
+        if (!supported.Contains(resourceType))
+        {
+            throw new ArgumentException($"Unsupported resource type '{resourceType}'.");
+        }
+
+        return resourceType.ToLowerInvariant();
+    }
+}
+
+public sealed class EfCoreAuthService : IAuthService
+{
+    private readonly SportingClubDbContext _db;
+    private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
+
+    public EfCoreAuthService(SportingClubDbContext db, IEmailService emailService, IConfiguration configuration)
+    {
+        _db = db;
+        _emailService = emailService;
+        _configuration = configuration;
+    }
+
+    public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+    {
+        var exists = await _db.AppUsers.AnyAsync(u => u.Email == request.Email);
+        if (exists)
+        {
+            throw new InvalidOperationException("Email already exists.");
+        }
+
+        var user = new AppUser
+        {
+            Email = request.Email,
+            FullName = request.FullName,
+            Role = string.IsNullOrWhiteSpace(request.Role) ? "Member" : request.Role,
+            PasswordHash = Hash(request.Password),
+            EmailVerified = false
+        };
+
+        _db.AppUsers.Add(user);
+        await _db.SaveChangesAsync();
+
+        await _emailService.SendAsync(user.Email, "Verify your email", "Use /verify-email endpoint to verify.");
+        return await IssueTokensAndPersistRefreshAsync(user);
+    }
+
+    public async Task<AuthResponse> LoginAsync(LoginRequest request)
+    {
+        var user = await _db.AppUsers.SingleOrDefaultAsync(u => u.Email == request.Email);
+        if (user is null || user.PasswordHash != Hash(request.Password))
+        {
+            throw new UnauthorizedAccessException("Invalid credentials.");
+        }
+
+        return await IssueTokensAndPersistRefreshAsync(user);
+    }
+
+    public async Task<AuthResponse> RefreshAsync(RefreshRequest request)
+    {
+        var token = await _db.RefreshTokens.SingleOrDefaultAsync(t =>
+            t.Token == request.RefreshToken && !t.IsRevoked && t.ExpiresAtUtc > DateTime.UtcNow);
+
+        if (token is null)
+        {
+            throw new UnauthorizedAccessException("Invalid refresh token.");
+        }
+
+        // Revoke old token, then issue a new access + refresh token pair.
+        token.IsRevoked = true;
+        token.UpdatedAtUtc = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        var user = await _db.AppUsers.SingleOrDefaultAsync(u => u.Id == token.UserId);
+        if (user is null)
+        {
+            throw new UnauthorizedAccessException("User not found.");
+        }
+
+        return await IssueTokensAndPersistRefreshAsync(user);
+    }
+
+    public async Task LogoutAsync(string refreshToken)
+    {
+        var token = await _db.RefreshTokens.SingleOrDefaultAsync(t => t.Token == refreshToken && !t.IsRevoked);
+        if (token is not null)
+        {
+            token.IsRevoked = true;
+            token.UpdatedAtUtc = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+        }
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        // For now we just send a stub email. Later this can generate and store reset tokens.
+        await _emailService.SendAsync(request.Email, "Reset password", "Use /reset-password endpoint.");
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await _db.AppUsers.SingleOrDefaultAsync(u => u.Email == request.Email);
+        if (user is not null)
+        {
+            user.PasswordHash = Hash(request.NewPassword);
+            user.UpdatedAtUtc = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+        }
+    }
+
+    public async Task VerifyEmailAsync(VerifyEmailRequest request)
+    {
+        var user = await _db.AppUsers.SingleOrDefaultAsync(u => u.Email == request.Email);
+        if (user is not null)
+        {
+            user.EmailVerified = true;
+            user.UpdatedAtUtc = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+        }
+    }
+
+    private async Task<AuthResponse> IssueTokensAndPersistRefreshAsync(AppUser user)
+    {
+        var key = _configuration["Jwt:Key"] ?? "sporting-club-dev-super-secret-signing-key";
+        var issuer = _configuration["Jwt:Issuer"] ?? "SportingClub";
+        var audience = _configuration["Jwt:Audience"] ?? "SportingClubClients";
+        var expiryMinutes = int.TryParse(_configuration["Jwt:AccessTokenExpiryMinutes"], out var minutes) ? minutes : 60;
+        var expiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
+            }),
+            Expires = expiresAt,
+            Issuer = issuer,
+            Audience = audience,
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256)
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var accessToken = tokenHandler.WriteToken(tokenHandler.CreateToken(tokenDescriptor));
+
+        var refreshValue = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        _db.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = user.Id,
+            Token = refreshValue,
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        });
+
+        await _db.SaveChangesAsync();
+
+        return new AuthResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshValue,
+            ExpiresAtUtc = expiresAt
+        };
+    }
+
+    private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+}
+
+public sealed class EfCoreResourceService : IResourceService
+{
+    private readonly SportingClubDbContext _db;
+
+    public EfCoreResourceService(SportingClubDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<ResourceItem> CreateAsync(string resourceType, ResourceItem request)
+    {
+        var normalized = NormalizeResource(resourceType);
+        request.Id = Guid.NewGuid();
+        request.ResourceType = normalized;
+        request.CreatedAtUtc = DateTime.UtcNow;
+        request.UpdatedAtUtc = DateTime.UtcNow;
+
+        _db.ResourceItems.Add(request);
+        await _db.SaveChangesAsync();
+        return request;
+    }
+
+    public async Task<PagedResult<ResourceItem>> ListAsync(string resourceType, QueryOptions options)
+    {
+        var normalized = NormalizeResource(resourceType);
+
+        var query = _db.ResourceItems.Where(x => x.ResourceType == normalized);
+        if (!string.IsNullOrWhiteSpace(options.Search))
+        {
+            query = query.Where(x => x.Name.Contains(options.Search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var sortBy = options.SortBy?.Trim().ToLowerInvariant();
+        var sortDir = options.SortDirection?.Trim().ToLowerInvariant();
+        var isDesc = sortDir == "desc";
+
+        query = sortBy switch
+        {
+            "name" => isDesc ? query.OrderByDescending(x => x.Name) : query.OrderBy(x => x.Name),
+            "createdatutc" or "createdatutc" or "created_at_utc" => isDesc ? query.OrderByDescending(x => x.CreatedAtUtc) : query.OrderBy(x => x.CreatedAtUtc),
+            _ => query.OrderBy(x => x.Name)
+        };
+
+        var totalCount = await query.CountAsync();
+
+        var page = options.Page < 1 ? 1 : options.Page;
+        var pageSize = options.PageSize is < 1 or > 200 ? 20 : options.PageSize;
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        return new PagedResult<ResourceItem>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<ResourceItem?> GetAsync(string resourceType, Guid id)
+    {
+        var normalized = NormalizeResource(resourceType);
+        return await _db.ResourceItems.SingleOrDefaultAsync(x => x.ResourceType == normalized && x.Id == id);
+    }
+
+    public async Task<ResourceItem?> UpdateAsync(string resourceType, Guid id, ResourceItem request)
+    {
+        var normalized = NormalizeResource(resourceType);
+        var existing = await _db.ResourceItems.SingleOrDefaultAsync(x => x.ResourceType == normalized && x.Id == id);
+        if (existing is null)
+        {
+            return null;
+        }
+
+        existing.Name = request.Name;
+        existing.Attributes = request.Attributes;
+        existing.UpdatedAtUtc = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        return existing;
+    }
+
+    public async Task<bool> DeleteAsync(string resourceType, Guid id)
+    {
+        var normalized = NormalizeResource(resourceType);
+        var existing = await _db.ResourceItems.SingleOrDefaultAsync(x => x.ResourceType == normalized && x.Id == id);
+        if (existing is null)
+        {
+            return false;
+        }
+
+        _db.ResourceItems.Remove(existing);
+        await _db.SaveChangesAsync();
+        return true;
     }
 
     private static string NormalizeResource(string resourceType)

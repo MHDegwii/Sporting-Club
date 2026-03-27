@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\SportingClub.API.props" />
-</Project>

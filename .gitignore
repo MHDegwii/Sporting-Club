@@ -1,0 +1,23 @@
+## Build outputs
+bin/
+obj/
+TestResults/
+
+## User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## IDEs
+.vs/
+.vscode/
+.idea/
+
+## OS
+.DS_Store
+
+## Secrets / logs
+*.log
+uploads/
+
