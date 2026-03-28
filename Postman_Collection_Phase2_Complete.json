@@ -1,0 +1,1092 @@
+{
+  "info": {
+    "name": "Sporting Club API - Phase 2 Complete Collection",
+    "_postman_id": "sporting-club-phase2-complete-collection",
+    "description": "Complete Sporting Club API Collection - Phase 2 Implementation\n\n?? 50+ Endpoints:\n• Authentication (Register, Login, Refresh)\n• Sports Management (CRUD)\n• Club Services (CRUD)\n• Subscriptions (CRUD)\n• Tickets & Bookings (CRUD + Book)\n• Reservations with Conflict Detection (CRUD + Advanced)\n• Stores (CRUD)\n• Offers with Active Filtering (CRUD + Active List)\n• Analytics (Dashboard)\n• Operations (Health Check)\n\nVersion: 2.0 - Phase 2 Complete\nLast Updated: March 27, 2026",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "?? SETUP & AUTHENTICATION",
+      "item": [
+        {
+          "name": "1. Auth - Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"fullName\": \"Test User\",\n  \"password\": \"TestPass@123\",\n  \"role\": \"Member\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new user account\n\n**Request:**\n- email: User email\n- fullName: Full name\n- password: Password (min 8 chars, 1 number, 1 uppercase)\n- role: Member, Staff, Manager, Admin\n\n**Response:**\n```json\n{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refreshToken\": \"eye2FsY2lzIn0...\",\n  \"expiresAtUtc\": \"2026-03-28T01:47:00Z\"\n}\n```"
+          }
+        },
+        {
+          "name": "2. Auth - Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('token', jsonData.accessToken);",
+                  "    pm.environment.set('refreshToken', jsonData.refreshToken);",
+                  "    console.log('? Token saved successfully');",
+                  "} else {",
+                  "    console.log('? Login failed');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestPass@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login and get access token\n\n**Request:**\n- email: User email\n- password: User password\n\n**Response:**\n```json\n{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refreshToken\": \"eye2FsY2lzIn0...\",\n  \"expiresAtUtc\": \"2026-03-28T01:47:00Z\"\n}\n```\n\n**Note:** Token is automatically saved to environment after successful login"
+          }
+        },
+        {
+          "name": "3. Auth - Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Refresh access token using refresh token\n\n**Response:**\n```json\n{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refreshToken\": \"eye2FsY2lzIn0...\",\n  \"expiresAtUtc\": \"2026-03-28T01:47:00Z\"\n}\n```"
+          }
+        }
+      ]
+    },
+    {
+      "name": "? SPORTS",
+      "item": [
+        {
+          "name": "List Sports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sports?page=1&pageSize=10&search=&sortBy=name&sortDirection=asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sports"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "asc"
+                }
+              ]
+            },
+            "description": "Get all sports with pagination and search\n\n**Response:**\n```json\n{\n  \"items\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"name\": \"Football\",\n      \"description\": \"Indoor football league\",\n      \"schedule\": \"Monday & Friday 6-8 PM\",\n      \"coachId\": null,\n      \"branchId\": null,\n      \"createdAtUtc\": \"2026-03-27T01:47:00Z\",\n      \"updatedAtUtc\": \"2026-03-27T01:47:00Z\"\n    }\n  ],\n  \"page\": 1,\n  \"pageSize\": 10,\n  \"totalCount\": 1\n}\n```"
+          }
+        },
+        {
+          "name": "Get Sport by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sports/550e8400-e29b-41d4-a716-446655440000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sports",
+                "550e8400-e29b-41d4-a716-446655440000"
+              ]
+            },
+            "description": "Get sport details by ID"
+          }
+        },
+        {
+          "name": "Create Sport",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Football\",\n  \"description\": \"Indoor football league\",\n  \"schedule\": \"Monday & Friday 6-8 PM\",\n  \"coachId\": null,\n  \"branchId\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sports"
+              ]
+            },
+            "description": "Create new sport (Manager+ required)"
+          }
+        },
+        {
+          "name": "Update Sport",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Football - Updated\",\n  \"description\": \"Updated description\",\n  \"schedule\": \"Monday & Friday 6-9 PM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sports/550e8400-e29b-41d4-a716-446655440000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sports",
+                "550e8400-e29b-41d4-a716-446655440000"
+              ]
+            },
+            "description": "Update sport (Manager+ required)"
+          }
+        },
+        {
+          "name": "Delete Sport",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sports/550e8400-e29b-41d4-a716-446655440000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sports",
+                "550e8400-e29b-41d4-a716-446655440000"
+              ]
+            },
+            "description": "Delete sport (Admin required)\n\nResponse: 204 No Content"
+          }
+        }
+      ]
+    },
+    {
+      "name": "??? SERVICES",
+      "item": [
+        {
+          "name": "List Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/services?page=1&pageSize=10&search=&sortBy=name&sortDirection=asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "services"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "asc"
+                }
+              ]
+            },
+            "description": "Get all services with pagination"
+          }
+        },
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Personal Training\",\n  \"description\": \"One-on-one coaching sessions\",\n  \"status\": \"Available\",\n  \"branchId\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/services",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "services"
+              ]
+            },
+            "description": "Create new service (Manager+ required)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "?? SUBSCRIPTIONS",
+      "item": [
+        {
+          "name": "List Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions?page=1&pageSize=10&search=&sortBy=name&sortDirection=asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subscriptions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "asc"
+                }
+              ]
+            },
+            "description": "Get all subscription plans"
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Monthly Pass\",\n  \"price\": 99.99,\n  \"durationDays\": 30,\n  \"linkedSportIds\": \"[]\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subscriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subscriptions"
+              ]
+            },
+            "description": "Create subscription plan (Admin required)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "??? TICKETS",
+      "item": [
+        {
+          "name": "List Tickets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tickets?page=1&pageSize=10&search=&sortBy=eventname&sortDirection=asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tickets"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "sortBy",
+                  "value": "eventname"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "asc"
+                }
+              ]
+            },
+            "description": "List all available tickets (future dates only)"
+          }
+        },
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventName\": \"Cup Final 2025\",\n  \"quantity\": 100,\n  \"price\": 50.0,\n  \"availableSinceUtc\": \"2026-01-27T00:00:00Z\",\n  \"availableUntilUtc\": \"2026-02-15T23:59:59Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tickets"
+              ]
+            },
+            "description": "Create ticket (Manager+ required)"
+          }
+        },
+        {
+          "name": "Book Tickets",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "3"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tickets/550e8400-e29b-41d4-a716-446655440001/book",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tickets",
+                "550e8400-e29b-41d4-a716-446655440001",
+                "book"
+              ]
+            },
+            "description": "Book tickets (quantity as integer in body)\n\n**Request Body:** Just the number: `3`\n\n**Sample Response:**\n```json\n{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"ticketId\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"userId\": \"550e8400-e29b-41d4-a716-446655440099\",\n  \"quantityBooked\": 3,\n  \"bookedAtUtc\": \"2026-03-27T01:47:00Z\"\n}\n```"
+          }
+        },
+        {
+          "name": "My Ticket Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tickets/my-bookings?page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tickets",
+                "my-bookings"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get current user's ticket bookings"
+          }
+        }
+      ]
+    },
+    {
+      "name": "?? RESERVATIONS ?",
+      "item": [
+        {
+          "name": "Get Available Slots",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservations/sport/550e8400-e29b-41d4-a716-446655440000/available-slots?date=2026-02-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations",
+                "sport",
+                "550e8400-e29b-41d4-a716-446655440000",
+                "available-slots"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-02-01"
+                }
+              ]
+            },
+            "description": "Get available time slots for a sport on a specific date\n\n**Sample Response:**\n```json\n[\n  \"09:00-10:00\",\n  \"10:00-11:00\",\n  \"11:00-12:00\",\n  \"12:00-13:00\",\n  \"13:00-14:00\",\n  \"14:00-15:00\",\n  \"15:00-16:00\",\n  \"16:00-17:00\",\n  \"17:00-18:00\"\n]\n```"
+          }
+        },
+        {
+          "name": "Check Conflict",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservations/sport/550e8400-e29b-41d4-a716-446655440000/check-conflict?date=2026-02-01&timeSlot=09:00-10:00",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations",
+                "sport",
+                "550e8400-e29b-41d4-a716-446655440000",
+                "check-conflict"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-02-01"
+                },
+                {
+                  "key": "timeSlot",
+                  "value": "09:00-10:00"
+                }
+              ]
+            },
+            "description": "Check if a specific time slot is already booked (conflict detection)\n\n**Response:**\n```json\n{\n  \"hasConflict\": false\n}\n```"
+          }
+        },
+        {
+          "name": "List Reservations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservations?page=1&pageSize=10&sortBy=date&sortDirection=asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "date"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "asc"
+                }
+              ]
+            },
+            "description": "List all reservations (Staff+ required)"
+          }
+        },
+        {
+          "name": "Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"550e8400-e29b-41d4-a716-446655440099\",\n  \"sportId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"reservationDateUtc\": \"2026-02-01T09:00:00Z\",\n  \"timeSlot\": \"09:00-10:00\",\n  \"notes\": \"Football match\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations"
+              ]
+            },
+            "description": "Create reservation with automatic conflict detection\n\n**Error Response if conflict:**\n```json\n{\n  \"type\": \"https://tools.ietf.org/html/rfc7231#section-6.5.1\",\n  \"title\": \"Bad Request\",\n  \"status\": 400,\n  \"detail\": \"Time slot is already booked\"\n}\n```"
+          }
+        },
+        {
+          "name": "Update Reservation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservationDateUtc\": \"2026-02-02T09:00:00Z\",\n  \"timeSlot\": \"10:00-11:00\",\n  \"status\": \"Confirmed\",\n  \"notes\": \"Moved to next day\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservations/550e8400-e29b-41d4-a716-446655440003",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations",
+                "550e8400-e29b-41d4-a716-446655440003"
+              ]
+            },
+            "description": "Update reservation (also checks for conflicts)"
+          }
+        },
+        {
+          "name": "Cancel Reservation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservations/550e8400-e29b-41d4-a716-446655440003",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations",
+                "550e8400-e29b-41d4-a716-446655440003"
+              ]
+            },
+            "description": "Cancel reservation\n\nResponse: 204 No Content"
+          }
+        }
+      ]
+    },
+    {
+      "name": "?? STORES",
+      "item": [
+        {
+          "name": "List Stores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stores?page=1&pageSize=10&search=&sortBy=name&sortDirection=asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "stores"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "asc"
+                }
+              ]
+            },
+            "description": "Get all stores with pagination"
+          }
+        },
+        {
+          "name": "Create Store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sports Equipment Store\",\n  \"description\": \"Professional sports gear and equipment\",\n  \"branchId\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "stores"
+              ]
+            },
+            "description": "Create store (Manager+ required)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "?? OFFERS",
+      "item": [
+        {
+          "name": "List All Offers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/offers?page=1&pageSize=10&search=&sortBy=discount&sortDirection=desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "offers"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "sortBy",
+                  "value": "discount"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "List all offers (including past and future dates)"
+          }
+        },
+        {
+          "name": "List Active Offers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/offers/active?page=1&pageSize=10&sortBy=enddate&sortDirection=asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "offers",
+                "active"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "enddate"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "asc"
+                }
+              ]
+            },
+            "description": "List only active offers (within date range: startDate <= now <= endDate)"
+          }
+        },
+        {
+          "name": "Create Offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"storeId\": \"550e8400-e29b-41d4-a716-446655440005\",\n  \"description\": \"50% off all sports equipment\",\n  \"discountPercentage\": 50.0,\n  \"startDateUtc\": \"2026-01-27T00:00:00Z\",\n  \"endDateUtc\": \"2026-02-28T23:59:59Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/offers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "offers"
+              ]
+            },
+            "description": "Create offer (Manager+ required)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "?? ANALYTICS",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/analytics/dashboard-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analytics",
+                "dashboard-summary"
+              ]
+            },
+            "description": "Get dashboard KPIs and metrics\n\n**Sample Response:**\n```json\n{\n  \"totalMembers\": 150,\n  \"activeReservations\": 45,\n  \"totalRevenue\": 25000.00,\n  \"ticketsSold\": 500\n}\n```"
+          }
+        }
+      ]
+    },
+    {
+      "name": "?? OPERATIONS",
+      "item": [
+        {
+          "name": "Health Check - Ready",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/operations/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "operations",
+                "ready"
+              ]
+            },
+            "description": "Health check - API readiness (no auth required)\n\nResponse: 200 OK (if API is ready)"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5244",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
